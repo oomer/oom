@@ -22,15 +22,15 @@
 namespace oom {
     namespace ogt {
 
-        ogt_vox_model* convert_voxelsoftype_to_ogt_vox(const std::vector<oom::vmax::VmaxVoxel>& voxelsOfType) ;
+        ogt_vox_model* convert_voxelsoftype_to_ogt_vox(const std::vector<oom::vmax::Voxel>& voxelsOfType) ;
         void free_ogt_vox_model(ogt_vox_model* model) ;
         static void* voxel_meshify_malloc(size_t size, void* user_data) ;
         static void voxel_meshify_free(void* ptr, void* user_data) ;
 
 
-        // Convert a vector of VmaxVoxel to an ogt_vox_model
+        // Convert a vector of Voxel to an ogt_vox_model
         // Note: The returned ogt_vox_model must be freed using ogt_vox_free when no longer needed
-        ogt_vox_model* convert_voxelsoftype_to_ogt_vox(const std::vector<oom::vmax::VmaxVoxel>& voxelsOfType) {
+        ogt_vox_model* convert_voxelsoftype_to_ogt_vox(const std::vector<oom::vmax::Voxel>& voxelsOfType) {
             // Find the maximum dimensions from the voxels
             uint32_t size_x = 0;
             uint32_t size_y = 0;

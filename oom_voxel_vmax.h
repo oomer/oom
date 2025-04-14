@@ -27,35 +27,35 @@ using json = nlohmann::json;
 namespace oom {
     namespace vmax {
         //Forward declarations
-        struct VmaxMatrix4x4;
-        VmaxMatrix4x4 axisAngleToMatrix4x4(double ax, double ay, double az, double angle);
-        VmaxMatrix4x4 combineVmaxTransforms(double rotx, double roty, double rotz, double rota, double posx, double posy, double posz, double scalex, double scaley, double scalez);
-        struct VmaxRGBA;
-        std::vector<VmaxRGBA> read256x1PaletteFromPNG(const std::string& filename);
-        struct VmaxVoxel;
+        struct Matrix4x4;
+        Matrix4x4 axisAngleToMatrix4x4(double ax, double ay, double az, double angle);
+        Matrix4x4 combineTransforms(double rotx, double roty, double rotz, double rota, double posx, double posy, double posz, double scalex, double scaley, double scalez);
+        struct RGBA;
+        std::vector<RGBA> read256x1PaletteFromPNG(const std::string& filename);
+        struct Voxel;
         inline uint32_t compactBits(uint32_t n);
         inline void decodeMorton3DOptimized(uint32_t morton, uint32_t& x, uint32_t& y, uint32_t& z);
-        struct VmaxMaterial;
-        struct VmaxVoxelGrid;
-        struct VmaxModel;
-        inline std::array<VmaxMaterial, 8> getVmaxMaterials(plist_t pnodPalettePlist);
-        inline std::vector<VmaxVoxel> decodeVoxels(const std::vector<uint8_t>& dsData, int mortonOffset, uint16_t chunkID);
-        struct VmaxChunkInfo;
+        struct Material;
+        struct VoxelGrid;
+        struct Model;
+        inline std::array<Material, 8> getMaterials(plist_t pnodPalettePlist);
+        inline std::vector<Voxel> decodeVoxels(const std::vector<uint8_t>& dsData, int mortonOffset, uint16_t chunkID);
+        struct ChunkInfo;
         plist_t getNestedPlistNode(plist_t plist_root, const std::vector<std::string>& path);
-        VmaxChunkInfo vmaxChunkInfo(const plist_t& plist_snapshot_dict_item);
-        std::vector<VmaxVoxel> vmaxVoxelInfo(plist_t& plist_datastream, uint64_t chunkID, uint64_t minMorton);
+        ChunkInfo chunkInfo(const plist_t& plist_snapshot_dict_item);
+        std::vector<Voxel> vmaxVoxelInfo(plist_t& plist_datastream, uint64_t chunkID, uint64_t minMorton);
         inline plist_t readPlist(const std::string& inStrPlist, std::string outStrPlist, bool decompress);
         inline plist_t readPlist(const std::string& inStrPlist, bool decompress);
         struct JsonModelInfo;
         struct JsonGroupInfo;
-        class JsonVmaxSceneParser;
+        class JsonSceneParser;
 
         // Structure to represent a 4x4 matrix for 3D transformations
         // The matrix is stored as a 2D array where m[i][j] represents row i, column j
-        struct VmaxMatrix4x4 {
+        struct Matrix4x4 {
             double m[4][4];
             // Constructor: Creates an identity matrix (1's on diagonal, 0's elsewhere)
-            VmaxMatrix4x4() {
+            Matrix4x4() {
                 for(int i = 0; i < 4; i++) {
                     for(int j = 0; j < 4; j++) {
                         m[i][j] = (i == j) ? 1.0 : 0.0;  // 1.0 on diagonal, 0.0 elsewhere
@@ -65,8 +65,8 @@ namespace oom {
             
             // Matrix multiplication operator to combine transformations
             // Returns: A new matrix that represents the combined transformation
-            VmaxMatrix4x4 operator*(const VmaxMatrix4x4& other) const {
-                VmaxMatrix4x4 result;
+            Matrix4x4 operator*(const Matrix4x4& other) const {
+                Matrix4x4 result;
                 // Perform matrix multiplication
                 for(int i = 0; i < 4; i++) {
                     for(int j = 0; j < 4; j++) {
@@ -81,8 +81,8 @@ namespace oom {
             }
             
             // Helper function to create a translation matrix
-            static VmaxMatrix4x4 createTranslation(double x, double y, double z) {
-                VmaxMatrix4x4 result;
+            static Matrix4x4 createTranslation(double x, double y, double z) {
+                Matrix4x4 result;
                 result.m[3][0] = x;  // Translation in X (bottom row)
                 result.m[3][1] = y;  // Translation in Y (bottom row)
                 result.m[3][2] = z;  // Translation in Z (bottom row)
@@ -90,8 +90,8 @@ namespace oom {
             }
             
             // Helper function to create a scale matrix
-            static VmaxMatrix4x4 createScale(double x, double y, double z) {
-                VmaxMatrix4x4 result;
+            static Matrix4x4 createScale(double x, double y, double z) {
+                Matrix4x4 result;
                 result.m[0][0] = x;  // Scale in X
                 result.m[1][1] = y;  // Scale in Y
                 result.m[2][2] = z;  // Scale in Z
@@ -104,7 +104,7 @@ namespace oom {
         //   ax, ay, az: The axis vector to rotate around (doesn't need to be normalized)
         //   angle: The angle to rotate by (in radians)
         // Returns: A 4x4 rotation matrix that can be used to transform vectors
-        VmaxMatrix4x4 axisAngleToMatrix4x4(double ax, double ay, double az, double angle) {
+        Matrix4x4 axisAngleToMatrix4x4(double ax, double ay, double az, double angle) {
             // Step 1: Normalize the axis vector to make it a unit vector
             // This is required for the rotation formula to work correctly
             double length = sqrt(ax*ax + ay*ay + az*az);
@@ -122,7 +122,7 @@ namespace oom {
             // Step 3: Create rotation matrix using Rodrigues' rotation formula
             // This formula converts an axis-angle rotation into a 3x3 matrix
             // We'll embed it in the upper-left corner of our 4x4 matrix
-            VmaxMatrix4x4 result;
+            Matrix4x4 result;
             
             // First row of rotation matrix (upper-left 3x3 portion)
             result.m[0][0] = t*ax*ax + c;      // First column
@@ -152,30 +152,30 @@ namespace oom {
         //   posx, posy, posz: The position to translate to
         //   scalex, scaley, scalez: The scale to apply to the object
         // Returns: A 4x4 matrix that represents the combined transformation
-        VmaxMatrix4x4 combineVmaxTransforms(double rotx, double roty, double rotz, double rota, double posx, double posy, double posz, double scalex, double scaley, double scalez) {
-            VmaxMatrix4x4 rotMat4 = axisAngleToMatrix4x4(rotx, 
+        Matrix4x4 combineTransforms(double rotx, double roty, double rotz, double rota, double posx, double posy, double posz, double scalex, double scaley, double scalez) {
+            Matrix4x4 rotMat4 = axisAngleToMatrix4x4(rotx, 
                                                         roty, 
                                                         rotz, 
                                                         rota);
-            VmaxMatrix4x4 transMat4 = VmaxMatrix4x4();
+            Matrix4x4 transMat4 = Matrix4x4();
             transMat4 = transMat4.createTranslation(posx, 
                                                     posy, 
                                                     posz);
-            VmaxMatrix4x4 scaleMat4 = VmaxMatrix4x4();
+            Matrix4x4 scaleMat4 = Matrix4x4();
             scaleMat4 = scaleMat4.createScale(scalex, 
                                             scaley, 
                                             scalez);
-            VmaxMatrix4x4 resultMat4 = scaleMat4 * rotMat4 * transMat4;
+            Matrix4x4 resultMat4 = scaleMat4 * rotMat4 * transMat4;
             return resultMat4;
         }
 
 
-        struct VmaxRGBA {
+        struct RGBA {
             uint8_t r, g, b, a;
         };
 
-        // Read a 256x1 PNG file and return a vector of VmaxRGBA colors
-        std::vector<VmaxRGBA> read256x1PaletteFromPNG(const std::string& filename) {
+        // Read a 256x1 PNG file and return a vector of RGBA colors
+        std::vector<RGBA> read256x1PaletteFromPNG(const std::string& filename) {
             int width, height, channels;
             // Load the image with 4 desired channels (RGBA)
             unsigned char* data = stbi_load(filename.c_str(), &width, &height, &channels, 4);
@@ -189,10 +189,10 @@ namespace oom {
                 std::cerr << "Warning: Expected a 256x1 image, but got " << width << "x" << height << std::endl;
             }
             // Create our palette array
-            std::vector<VmaxRGBA> palette;
+            std::vector<RGBA> palette;
             // Read each pixel (each pixel is 4 bytes - RGBA)
             for (int i = 0; i < width; i++) {
-                VmaxRGBA color;
+                RGBA color;
                 color.r = data[i * 4];
                 color.g = data[i * 4 + 1];
                 color.b = data[i * 4 + 2];
@@ -209,14 +209,14 @@ namespace oom {
         // The world itself can be larger, see scene.json
         // Helper struct because in VmaxModel we use array of arrays to store material and color
         // Allowing us to group voxels by material and color
-        struct VmaxVoxel {
+        struct Voxel {
             uint8_t x, y, z;
             uint8_t material;    // material value 0-7
             uint8_t palette;     // Color palette mapping index 0-255, search palette1.png
             uint16_t chunkID;       // Chunk ID 0-511 8x8x8 is a morton code
             uint16_t minMorton;     // morton encoded offset from chunk origin 0-32767 32x32x32, decoded value is added to voxel x y z
             // Constructor
-            VmaxVoxel(      uint8_t _x,
+            Voxel(      uint8_t _x,
                             uint8_t _y,
                             uint8_t _z,
                             uint8_t _material,
@@ -244,7 +244,7 @@ namespace oom {
             z = compactBits(morton >> 2);
         }
 
-        struct VmaxMaterial {
+        struct Material {
             std::string materialName;
             double transmission;
             double roughness;
@@ -255,7 +255,7 @@ namespace oom {
             bool volumetric; // future use
         };
 
-        struct VmaxVoxelGrid {
+        struct VoxelGrid {
             // dimensions of the voxel grid
             uint32_t size_x, size_y, size_z;
             // voxel data
@@ -265,15 +265,15 @@ namespace oom {
 
         // Create a structure to represent a model with its voxels with helper functions
         // since the xyz coords are at the voxel level, we need an accessor to walk it sequentially
-        // maybe I create a new structure called VmaxVoxelGrid
-        struct VmaxModel {
+        // maybe I create a new structure called VoxelGrid
+        struct Model {
             // Model identifier or name
             std::string vmaxbFileName; // file name is used like a key
             
             // Voxels organized by material and color
             // First dimension: material (0-7)
             // Second dimension: color (1-255, index 0 unused since color 0 means no voxel)
-            std::vector<VmaxVoxel> voxels[8][256];
+            std::vector<Voxel> voxels[8][256];
             
             // EDUCATIONAL NOTES ON DUAL DATA STRUCTURES FOR VOXELS:
             // ----------------------------------------------------
@@ -303,16 +303,16 @@ namespace oom {
 
 
             // todo we need to do morton decoing using chunkid to get x,y,z
-            std::map<uint32_t, std::vector<VmaxVoxel>> voxelsSpatial;
+            std::map<uint32_t, std::vector<Voxel>> voxelsSpatial;
             
             // Each model has local 0-7 materials
-            std::array<VmaxMaterial, 8> materials;
+            std::array<Material, 8> materials;
             // Each model has local colors
-            std::array<VmaxRGBA, 256> colors;
+            std::array<RGBA, 256> colors;
             uint8_t maxx=0, maxy=0, maxz=0;
 
             // Constructor
-            VmaxModel(const std::string& modelName) : vmaxbFileName(modelName) {
+            Model(const std::string& modelName) : vmaxbFileName(modelName) {
             }
             
             // Helper function to create a key for the voxelsSpatial map
@@ -359,13 +359,13 @@ namespace oom {
             // Time complexity: O(log n) where n is the number of occupied positions.
             // Without voxelsSpatial, we would need to scan through ALL voxels (potentially thousands)
             // to find those at a specific position, which would be O(total_voxel_count).
-            const std::vector<VmaxVoxel>& getVoxelsAt(uint8_t x, uint8_t y, uint8_t z) const {
+            const std::vector<Voxel>& getVoxelsAt(uint8_t x, uint8_t y, uint8_t z) const {
                 uint32_t key = makeVoxelKey(x, y, z);
                 auto it = voxelsSpatial.find(key);
                 if (it != voxelsSpatial.end()) {
                     return it->second;
                 }
-                static const std::vector<VmaxVoxel> empty;
+                static const std::vector<Voxel> empty;
                 return empty;
             }
             
@@ -378,21 +378,21 @@ namespace oom {
             }
             
             // Add materials to this model
-            void addMaterials(const std::array<VmaxMaterial, 8> newMaterials) {
+            void addMaterials(const std::array<Material, 8> newMaterials) {
                 materials = newMaterials;
             }
             
             // Add colors to this model
-            void addColors(const std::array<VmaxRGBA, 256> newColors) {
+            void addColors(const std::array<RGBA, 256> newColors) {
                 colors = newColors;
             }
             
             // Get all voxels of a specific material and color
-            const std::vector<VmaxVoxel>& getVoxels(int material, int color) const {
+            const std::vector<Voxel>& getVoxels(int material, int color) const {
                 if (material >= 0 && material < 8 && color > 0 && color < 256) {
                     return voxels[material][color];
                 }
-                static std::vector<VmaxVoxel> empty;
+                static std::vector<Voxel> empty;
                 return empty;
             }
             
@@ -424,14 +424,12 @@ namespace oom {
             }
         };
 
-        inline std::array<VmaxMaterial, 8> getVmaxMaterials(plist_t pnodPalettePlist) {
+        inline std::array<Material, 8> getMaterials(plist_t pnodPalettePlist) {
             // Directly access the materials array
-            std::array<VmaxMaterial, 8> vmaxMaterials;
+            std::array<Material, 8> vmaxMaterials;
             plist_t materialsNode = plist_dict_get_item(pnodPalettePlist, "materials");
             if (materialsNode && plist_get_node_type(materialsNode) == PLIST_ARRAY) {
                 uint32_t materialsCount = plist_array_get_size(materialsNode);
-                //std::cout << "Found materials array with " << materialsCount << " items" << std::endl;
-                
                 // Process each material
                 for (uint32_t i = 0; i < materialsCount; i++) {
                     plist_t materialNode = plist_array_get_item(materialsNode, i);
@@ -498,10 +496,10 @@ namespace oom {
         * @param dsData The raw ds data stream containing material and palette index pairs
         * @param mortonOffset offset to apply to the morton code
         * @param chunkID chunk ID
-        * @return vector of VmaxVoxel structures containing the voxels local to a snapshot
+        * @return vector of Voxel structures containing the voxels local to a snapshot
         */
-        inline std::vector<VmaxVoxel> decodeVoxels(const std::vector<uint8_t>& dsData, int mortonOffset, uint16_t chunkID) {
-            std::vector<VmaxVoxel> voxels;
+        inline std::vector<Voxel> decodeVoxels(const std::vector<uint8_t>& dsData, int mortonOffset, uint16_t chunkID) {
+            std::vector<Voxel> voxels;
             uint8_t material;
             uint8_t color;
             for (int i = 0; i < dsData.size() - 1; i += 2) {
@@ -513,7 +511,7 @@ namespace oom {
                                         _tempy,
                                         _tempz); // index IS the morton code
                 if (color != 0) {
-                    VmaxVoxel voxel = {
+                    Voxel voxel = {
                         static_cast<uint8_t>(_tempx), 
                         static_cast<uint8_t>(_tempy), 
                         static_cast<uint8_t>(_tempz), 
@@ -529,7 +527,7 @@ namespace oom {
         }
 
         //libplist reads in 64 bits
-        struct VmaxChunkInfo {
+        struct ChunkInfo {
             int64_t id; // was uint but will use -1 to indicate bad chunk
             uint64_t type;
             uint64_t mortoncode;
@@ -555,7 +553,7 @@ namespace oom {
         // Need morton code in snapshot before we can decode voxels
         // @param an individual chunk: plist_t of a snapshot dict->item->s
         // @return Chunk level info needed to decode voxels
-        VmaxChunkInfo vmaxChunkInfo(const plist_t& plist_snapshot_dict_item) {
+        ChunkInfo vmaxChunkInfo(const plist_t& plist_snapshot_dict_item) {
             uint64_t id;
             uint64_t type;
             uint64_t mortoncode;
@@ -582,7 +580,7 @@ namespace oom {
                 plist_t plist_chunk = getNestedPlistNode(plist_snapshot, {"id","c"});
                 plist_get_uint_val(plist_chunk, &id);
 
-                return VmaxChunkInfo{static_cast<int64_t>(id), 
+                return ChunkInfo{static_cast<int64_t>(id), 
                                     type,
                                     mortoncode,
                                     voxelOffsetX,
@@ -593,16 +591,16 @@ namespace oom {
                 // Just continue to next snapshot
                 // This bypass might mean we miss useful snapshots
             }
-            return VmaxChunkInfo{-1, 0, 0, 0, 0, 0};
+            return ChunkInfo{-1, 0, 0, 0, 0, 0};
         }
 
 
-        // Right after we get VmaxChunkInfo, we can get the voxels because we need morton chunk offset
+        // Right after we get ChunkInfo, we can get the voxels because we need morton chunk offset
         // @param pnodSnaphot: plist_t of a snapshot
-        // @return vector of VmaxVoxel
-        //std::vector<VmaxVoxel> getVmaxSnapshot(plist_t& pnod_each_snapshot) {
-        std::vector<VmaxVoxel> vmaxVoxelInfo(plist_t& plist_datastream, uint64_t chunkID, uint64_t minMorton) {
-            std::vector<VmaxVoxel> voxelsArray; 
+        // @return vector of Voxel
+        //std::vector<Voxel> getSnapshot(plist_t& pnod_each_snapshot) {
+        std::vector<Voxel> vmaxVoxelInfo(plist_t& plist_datastream, uint64_t chunkID, uint64_t minMorton) {
+            std::vector<Voxel> voxelsArray; 
             try {
 
                 // Extract the binary data
@@ -610,7 +608,7 @@ namespace oom {
                 uint64_t length = 0;
                 plist_get_data_val(plist_datastream, &data, &length);
                 auto foo =  std::vector<uint8_t>(data, data + length) ;
-                std::vector<VmaxVoxel> allModelVoxels = decodeVoxels(std::vector<uint8_t>(data, data + length), minMorton, chunkID);
+                std::vector<Voxel> allModelVoxels = decodeVoxels(std::vector<uint8_t>(data, data + length), minMorton, chunkID);
 
                 //std::cout << "allModelVoxels: " << allModelVoxels.size() << std::endl;
 
@@ -623,7 +621,7 @@ namespace oom {
                 int model_256x256x256_y = model_8x8x8_y * 8;
                 int model_256x256x256_z = model_8x8x8_z * 8;
 
-                for (const VmaxVoxel& eachVmaxVoxel : allModelVoxels) {
+                for (const Voxel& eachVmaxVoxel : allModelVoxels) {
                     auto [  chunk_32x32x32_x, 
                             chunk_32x32x32_y, 
                             chunk_32x32x32_z, 
@@ -636,13 +634,13 @@ namespace oom {
                     int voxel_256x256x256_y = model_256x256x256_y + chunk_32x32x32_y;
                     int voxel_256x256x256_z = model_256x256x256_z + chunk_32x32x32_z;
 
-                    auto one_voxel = VmaxVoxel(voxel_256x256x256_x, 
-                                            voxel_256x256x256_y, 
-                                            voxel_256x256x256_z, 
-                                            materialMap, 
-                                            colorMap,
-                                            chunkID,
-                                            minMorton);
+                    auto one_voxel = Voxel(voxel_256x256x256_x, 
+                                           voxel_256x256x256_y, 
+                                           voxel_256x256x256_z, 
+                                           materialMap, 
+                                           colorMap,
+                                           chunkID,
+                                           minMorton);
                     voxelsArray.push_back(one_voxel);
                 }
                 return voxelsArray;
@@ -807,7 +805,7 @@ namespace oom {
         };
 
         // Class to parse VoxelMax's scene.json
-        class JsonVmaxSceneParser {
+        class JsonSceneParser {
         private:
             std::map<std::string, JsonModelInfo> models; // a vmax model can also be called a content
             std::map<std::string, JsonGroupInfo> groups;
