@@ -84,8 +84,7 @@ namespace oom {
                 belBevel["radius"] = 90.0f;
                 belBevel["samples"] =dl::UInt(6); 
 
-                //#include "resources/smoothcube.h"
-                addMeshCube(belMeshVoxel);
+                oom::bella::addMeshCube(belMeshVoxel);
                // Configure voxel box dimensions
                 belVoxel["radius"]  = 0.33f;
                 belVoxel["sizeX"]   = 0.99f;
