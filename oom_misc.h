@@ -3,16 +3,7 @@
 #include <iostream>
 #include <fstream>    // For std::ofstream
 #include <filesystem>  // For std::filesystem
-//#include "DayEnvironmentHDRI019_1K-TONEMAPPED.h" // embedded image dome light
 #include <cmath>      // For std::pow
-
-/*extern const unsigned int DayEnvironmentHDRI019_1K_TONEMAPPED_jpg_len;
-extern const unsigned char DayEnvironmentHDRI019_1K_TONEMAPPED_jpg[];
-inline float srgbToLinear(float value);
-inline std::vector<uint8_t> LZFSEToArray(const std::string& lzfseFullName);
-inline std::vector<uint8_t> decompressLZFSE(const std::string& dirName, const std::string& compressedName); 
-inline void saveHDRI();
-*/
 
 namespace oom {
     namespace misc {
@@ -91,13 +82,6 @@ namespace oom {
                     std::cerr << "HDRI failed to write" << hdriFile << std::endl;
                 }
             } 
-        }
-
-
-        inline std::string printDayEnvironmentHDRI019_1K_TONEMAPPEDLicence() {
-            return R"(
-        DayEnvironmentHDRI019_1K-TONEMAPPED.jpg from ambientCG.com,
-        licensed under the Creative Commons CC0 1.0 Universal License.)";
         }
 
         const unsigned char DayEnvironmentHDRI019_1K_TONEMAPPED_jpg[] = {

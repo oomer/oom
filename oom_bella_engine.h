@@ -7,11 +7,11 @@
 namespace oom {
     namespace bella {
         // Function declaration
-        dl::bella_sdk::Node essentialsToScene(dl::bella_sdk::Scene& belScene);
+        dl::bella_sdk::Node defaultScene2025(dl::bella_sdk::Scene& belScene);
 
         // @param belScene - the scene to create the essentials in
         // @return - the world node
-        dl::bella_sdk::Node essentialsToScene(dl::bella_sdk::Scene& belScene) {
+        dl::bella_sdk::Node defaultScene2025(dl::bella_sdk::Scene& belScene) {
             // Create the basic scene elements in Bella
             // Each line creates a different type of node in the scene auto belBeautyPass     = belScene.createNode("beautyPass","oomerBeautyPass","oomerBeautyPass");
             auto belWorld = belScene.world();       // Get scene world root

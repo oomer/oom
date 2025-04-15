@@ -1,12 +1,10 @@
 #pragma once
-
-// Bella SDK includes - external libraries for 3D rendering
 #include "../bella_scene_sdk/src/bella_sdk/bella_scene.h" // For creating and manipulating 3D scenes in Bella
-//#include "../bella_scene_sdk/src/dl_core/dl_main.inl" // Core functionality from the Diffuse Logic engine
 
-// Now define the oomer namespace with using declarations for all functions/classes
 namespace oom {
     namespace bella {
+        // Unit mesh cube created in Blender, with rounded edges
+        // Used for emitter voxels because procedural Bella box does not currently support emission
         void addMeshCube(dl::bella_sdk::Node& belMeshVoxel) {
             belMeshVoxel["name"] = "oomerMeshVoxel";
             belMeshVoxel["channels"][0] = "st";
