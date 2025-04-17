@@ -3,9 +3,11 @@
 
 namespace oom {
     namespace bella {
+
         // Unit mesh cube created in Blender, with rounded edges
         // Used for emitter voxels because procedural Bella box does not currently support emission
-        void addMeshCube(dl::bella_sdk::Node& belMeshVoxel) {
+        dl::bella_sdk::Node addMeshCube(dl::bella_sdk::Scene& belScene, dl::String guiName) {
+            auto belMeshVoxel = belScene.createNode("mesh", guiName);
             belMeshVoxel["name"] = "oomerMeshVoxel";
             belMeshVoxel["channels"][0] = "st";
             belMeshVoxel["optimized"] = false;
@@ -1971,6 +1973,7 @@ namespace oom {
             points.push_back(dl::Pos3f{0.353579, -0.353579, -0.495});
             points.push_back(dl::Pos3f{-0.353579, -0.353579, -0.495});
             belMeshVoxel["steps"][0]["points"] = points;
+            return belMeshVoxel;
         }
     }
 }

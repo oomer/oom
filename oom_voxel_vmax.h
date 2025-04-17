@@ -22,7 +22,7 @@ using json = nlohmann::json;
 
 // Define STB_IMAGE_IMPLEMENTATION before including to create the implementation
 #define STB_IMAGE_IMPLEMENTATION
-#include "thirdparty/stb_image.h" // STB Image library
+#include "thirdparty/stb_image.h" // STB Image library used to read 256x1 vmax palette stored in .png
 
 namespace oom {
     namespace vmax {
@@ -36,16 +36,23 @@ namespace oom {
         inline uint32_t compactBits(uint32_t n);
         inline void decodeMorton3DOptimized(uint32_t morton, uint32_t& x, uint32_t& y, uint32_t& z);
         struct Material;
-        struct VoxelGrid;
+        //struct VoxelGrid;
         struct Model;
-        inline std::array<Material, 8> getMaterials(plist_t pnodPalettePlist);
-        inline std::vector<Voxel> decodeVoxels(const std::vector<uint8_t>& dsData, int mortonOffset, uint16_t chunkID);
         struct ChunkInfo;
+        inline std::vector<Voxel> decodeVoxels(const std::vector<uint8_t>& dsData, int mortonOffset, uint16_t chunkID);
+
+        // Useful plist functions
+
+        // Read plist file
+        inline plist_t readPlist(const std::string& inStrPlist, std::string outStrPlist, bool decompress);
+        inline plist_t readPlist(const std::string& inStrPlist, bool decompress);
+
+        inline std::array<Material, 8> getMaterials(plist_t pnodPalettePlist);
         plist_t getNestedPlistNode(plist_t plist_root, const std::vector<std::string>& path);
         ChunkInfo chunkInfo(const plist_t& plist_snapshot_dict_item);
         std::vector<Voxel> vmaxVoxelInfo(plist_t& plist_datastream, uint64_t chunkID, uint64_t minMorton);
-        inline plist_t readPlist(const std::string& inStrPlist, std::string outStrPlist, bool decompress);
-        inline plist_t readPlist(const std::string& inStrPlist, bool decompress);
+
+        // Use these to parse scene.json
         struct JsonModelInfo;
         struct JsonGroupInfo;
         class JsonSceneParser;
@@ -255,17 +262,16 @@ namespace oom {
             bool volumetric; // future use
         };
 
-        struct VoxelGrid {
+        /*struct VoxelGrid {
             // dimensions of the voxel grid
             uint32_t size_x, size_y, size_z;
             // voxel data
             uint8_t* voxel_data;
-        };
+        };*/
 
 
         // Create a structure to represent a model with its voxels with helper functions
         // since the xyz coords are at the voxel level, we need an accessor to walk it sequentially
-        // maybe I create a new structure called VoxelGrid
         struct Model {
             // Model identifier or name
             std::string vmaxbFileName; // file name is used like a key
@@ -474,7 +480,7 @@ namespace oom {
             } else {
                 std::cout << "No materials array found or invalid type" << std::endl;
             }
-            #ifdef _DEBUG23
+            #ifdef _DEBUG
                 for (const auto& material : vmaxMaterials) {
                     std::cout << "Material: " << material.materialName << std::endl;
                     std::cout << "  Transmission: " << material.transmission << std::endl;
@@ -593,7 +599,6 @@ namespace oom {
             }
             return ChunkInfo{-1, 0, 0, 0, 0, 0};
         }
-
 
         // Right after we get ChunkInfo, we can get the voxels because we need morton chunk offset
         // @param pnodSnaphot: plist_t of a snapshot
@@ -821,7 +826,7 @@ namespace oom {
                     }
                     
                     // Parse the JSON
-                    json sceneData;
+                    json sceneData; // uses nlohmann/json
                     file >> sceneData;
                     file.close();
                     

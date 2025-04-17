@@ -10,6 +10,7 @@ namespace oom {
         //Forward declarations
         extern const unsigned char DayEnvironmentHDRI019_1K_TONEMAPPED_jpg[]; 
         extern const unsigned int DayEnvironmentHDRI019_1K_TONEMAPPED_jpg_len;
+
         // Convert sRGB color value to linear color space
         inline float srgbToLinear(float value) {
             return (value <= 0.04045f) ?
