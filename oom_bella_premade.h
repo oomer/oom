@@ -1,5 +1,7 @@
 #pragma once
 
+#include <tuple>
+
 // Bella SDK includes - external libraries for 3D rendering
 #include "../bella_engine_sdk/src/bella_sdk/bella_engine.h" // For creating and manipulating 3D scenes in Bella
 #include "../oom/oom_bella_long.h" // This file is very large
@@ -11,7 +13,11 @@ namespace oom {
     namespace bella {
         // Function declaration
         dl::bella_sdk::Node defaultScene2025(dl::bella_sdk::Scene& belScene);
-        dl::bella_sdk::Node defaultSceneVoxel(dl::bella_sdk::Scene& belScene);
+        //dl::bella_sdk::Node defaultSceneVoxel(dl::bella_sdk::Scene& belScene);
+        std::tuple< dl::bella_sdk::Node, 
+                    dl::bella_sdk::Node, 
+                    dl::bella_sdk::Node, 
+                    dl::bella_sdk::Node> defaultSceneVoxel(dl::bella_sdk::Scene& belScene);
 
         // @param belScene - the scene to create the essentials in
         // @return - the world node
@@ -70,9 +76,15 @@ namespace oom {
 
         // @param belScene - the scene to create the essentials in
         // @return - the world node
-        dl::bella_sdk::Node defaultSceneVoxel(dl::bella_sdk::Scene& belScene) {
+        std::tuple< dl::bella_sdk::Node, 
+                    dl::bella_sdk::Node, 
+                    dl::bella_sdk::Node, 
+                    dl::bella_sdk::Node> defaultSceneVoxel(dl::bella_sdk::Scene& belScene) {
             // Create basic scene elements in Bella for voxel rendering
-            auto belWorld = belScene.world();       // Get scene world root
+            auto belWorld     = belScene.world();       // Get scene world root
+            auto belVoxel     = belScene.createNode("box","oomVoxel","oomVoxel");
+            auto belLiqVoxel  = belScene.createNode("box","oomLiqVoxel","oomLiqVoxel");
+            auto belMeshVoxel = addMeshCube(belScene, "oomMeshVoxel");
             {
                 dl::bella_sdk::Scene::EventScope es(belScene);
 
@@ -122,15 +134,12 @@ namespace oom {
                 belSettings["iprNavigation"]= "maya";  // Use Maya-like navigation in viewer
 
                 // Create voxel nodes
-                auto belVoxel          = belScene.createNode("box","oomVoxel","oomVoxel");
-                auto belLiqVoxel       = belScene.createNode("box","oomLiqVoxel","oomLiqVoxel");
-                auto belVoxelForm      = belScene.createNode("xform","oomVoxelXform","oomVoxelXform");
-                auto belLiqVoxelForm   = belScene.createNode("xform","oomLiqVoxelXform","oomLiqVoxelXform");
-                auto belVoxelMat       = belScene.createNode("orenNayar","oomVoxelMat","oomVoxelMat");
+                //auto belVoxelForm      = belScene.createNode("xform","oomVoxelXform","oomVoxelXform");
+                //auto belLiqVoxelForm   = belScene.createNode("xform","oomLiqVoxelXform","oomLiqVoxelXform");
+                //auto belVoxelMat       = belScene.createNode("orenNayar","oomVoxelMat","oomVoxelMat");
                 auto belBevel = belScene.createNode("bevel", "oomBevel", "oomBevel");
                 belBevel["radius"] = 90.0f;
                 belBevel["samples"] =dl::UInt(6); 
-                auto belMeshVoxel = addMeshCube(belScene, "oomMeshVoxel");
                 belVoxel["radius"]  = 0.33f;
                 belVoxel["sizeX"]   = 0.99f;
                 belVoxel["sizeY"]   = 0.99f;
@@ -139,13 +148,12 @@ namespace oom {
                 belLiqVoxel["sizeX"]    = 0.99945f;
                 belLiqVoxel["sizeY"]    = 0.99945f;
                 belLiqVoxel["sizeZ"]    = 0.99945f;
-                belVoxel.parentTo(belVoxelForm);
-                belVoxelForm["steps"][0]["xform"] = dl::Mat4 {0.999,0,0,0,0,0.999,0,0,0,0,0.999,0,0,0,0,1};
-                belVoxelMat["reflectance"] = dl::Rgba{0.0, 0.0, 0.0, 1.0};
-                belVoxelForm["material"] = belVoxelMat;
-
+                //belVoxel.parentTo(belVoxelForm);
+                //belVoxelForm["steps"][0]["xform"] = dl::Mat4 {0.999,0,0,0,0,0.999,0,0,0,0,0.999,0,0,0,0,1};
+                //belVoxelMat["reflectance"] = dl::Rgba{0.0, 0.0, 0.0, 1.0};
+                //belVoxelForm["material"] = belVoxelMat;
             }
-            return belWorld;
+            return std::make_tuple(belWorld, belMeshVoxel, belLiqVoxel, belVoxel);
         }
     }
 }

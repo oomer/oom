@@ -9,7 +9,9 @@ namespace oom {
         dl::bella_sdk::Node addMeshCube(dl::bella_sdk::Scene& belScene, dl::String guiName) {
             auto belMeshVoxel = belScene.createNode("mesh", guiName);
             belMeshVoxel["name"] = "oomerMeshVoxel";
-            belMeshVoxel["channels"][0] = "st";
+            //dl::ds::Vector<dl::String> channels;
+            //belMeshVoxel.createChannel(dl::bella_sdk::ChannelType::Float, "st");
+            //belMeshVoxel["channels"][0] = "st";
             belMeshVoxel["optimized"] = false;
 
             dl::ds::Vector<dl::Vec4u> polygons;
