@@ -60,9 +60,14 @@ namespace oom {
                 belGroundMat["roughness"] = 22.0f;
                 belGroundMat["color"] = dl::Rgba{0.138431623578, 0.5, 0.3, 1.0};
 
+                auto belOutputImagePath = belScene.createNode("outputImagePath","oomOutputImagePath","oomOutputImagePath");
+                belOutputImagePath["ext"] = ".png";
+                belOutputImagePath["dir"] = ".";
+
                 // Set up scene settings
                 auto belSettings        = belScene.settings(); // Get scene settings
                 auto belBeautyPass      = belScene.createNode("beautyPass","oomBeautyPass","oomBeautyPass");
+                belBeautyPass["overridePath"] = belOutputImagePath;
                 belSettings["beautyPass"]  = belBeautyPass;
                 belSettings["camera"]      = belCam;
                 belSettings["environment"] = belColorDome;
@@ -93,7 +98,7 @@ namespace oom {
                 auto belCam             = belScene.createNode("camera","oomCamera","oomCamera");
                 auto belSensor          = belScene.createNode("sensor","oomSensor","oomSensor");
                 auto belLens            = belScene.createNode("thinLens","oomThinLens","oomThinLens");
-                belCam["resolution"]    = dl::Vec2 {1920, 1080};  // Set resolution to 1080p
+                belCam["resolution"]    = dl::Vec2 {800, 800};  // Set resolution to 1080p
                 belCam["lens"]          = belLens;               // Connect camera to lens
                 belCam["sensor"]        = belSensor;             // Connect camera to sensor
                 belCamForm.parentTo(belWorld);                  // Parent camera transform to world
@@ -122,9 +127,14 @@ namespace oom {
                 belGroundMat["roughness"] = 22.0f;
                 belGroundMat["color"] = dl::Rgba{0.138431623578, 0.5, 0.3, 1.0};
 
+                auto belOutputImagePath = belScene.createNode("outputImagePath","oomOutputImagePath","oomOutputImagePath");
+                belOutputImagePath["ext"] = ".png";
+                belOutputImagePath["dir"] = ".";
+
                 // Set up scene settings
                 auto belSettings            = belScene.settings(); // Get scene settings
                 auto belBeautyPass          = belScene.createNode("beautyPass","oomBeautyPass","oomBeautyPass");
+                belBeautyPass["overridePath"] = belOutputImagePath;
                 belSettings["beautyPass"]   = belBeautyPass;
                 belSettings["camera"]       = belCam;
                 belSettings["environment"]  = belColorDome;
