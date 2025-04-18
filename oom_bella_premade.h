@@ -5,6 +5,7 @@
 // Bella SDK includes - external libraries for 3D rendering
 #include "../bella_engine_sdk/src/bella_sdk/bella_engine.h" // For creating and manipulating 3D scenes in Bella
 #include "../oom/oom_bella_long.h" // This file is very large
+#include "../oom/oom_misc.h" // This file is very large
 
 extern int s_oomBellaLogContext; //  Declare the s_dlLogContext variable
 
@@ -24,6 +25,9 @@ namespace oom {
         dl::bella_sdk::Node defaultScene2025(dl::bella_sdk::Scene& belScene) {
             // Create the basic scene elements in Bella
             // Each line creates a different type of node in the scene auto belBeautyPass     = belScene.createNode("beautyPass","oomerBeautyPass","oomerBeautyPass");
+
+            oom::misc::saveHDRI();
+
             auto belWorld = belScene.world();       // Get scene world root
             {
                 dl::bella_sdk::Scene::EventScope es(belScene);
@@ -70,7 +74,7 @@ namespace oom {
                 belBeautyPass["overridePath"] = belOutputImagePath;
                 belSettings["beautyPass"]  = belBeautyPass;
                 belSettings["camera"]      = belCam;
-                belSettings["environment"] = belColorDome;
+                belSettings["environment"] = belImageDome;
                 belSettings["iprScale"]    = 100.0f;
                 belSettings["threads"]     = dl::bella_sdk::Input(0);  // Auto-detect thread count
                 belSettings["groundPlane"] = belGroundPlane;
@@ -90,6 +94,8 @@ namespace oom {
             auto belVoxel     = belScene.createNode("box","oomVoxel","oomVoxel");
             auto belLiqVoxel  = belScene.createNode("box","oomLiqVoxel","oomLiqVoxel");
             auto belMeshVoxel = addMeshCube(belScene, "oomMeshVoxel");
+            oom::misc::saveHDRI();
+            
             {
                 dl::bella_sdk::Scene::EventScope es(belScene);
 
@@ -137,7 +143,7 @@ namespace oom {
                 belBeautyPass["overridePath"] = belOutputImagePath;
                 belSettings["beautyPass"]   = belBeautyPass;
                 belSettings["camera"]       = belCam;
-                belSettings["environment"]  = belColorDome;
+                belSettings["environment"]  = belImageDome;
                 belSettings["iprScale"]     = 100.0f;
                 belSettings["threads"]      = dl::bella_sdk::Input(0);  // Auto-detect thread count
                 belSettings["groundPlane"]  = belGroundPlane;
