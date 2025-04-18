@@ -7,8 +7,6 @@
 #include "../oom/oom_bella_long.h" // This file is very large
 #include "../oom/oom_misc.h" // This file is very large
 
-extern int s_oomBellaLogContext; //  Declare the s_dlLogContext variable
-
 // Define the oom namespace
 namespace oom {
     namespace bella {
@@ -16,6 +14,7 @@ namespace oom {
         dl::bella_sdk::Node defaultScene2025(dl::bella_sdk::Scene& belScene);
         //dl::bella_sdk::Node defaultSceneVoxel(dl::bella_sdk::Scene& belScene);
         std::tuple< dl::bella_sdk::Node, 
+                    dl::bella_sdk::Node, 
                     dl::bella_sdk::Node, 
                     dl::bella_sdk::Node, 
                     dl::bella_sdk::Node> defaultSceneVoxel(dl::bella_sdk::Scene& belScene);
@@ -84,14 +83,17 @@ namespace oom {
         }
 
         // @param belScene - the scene to create the essentials in
-        // @return - the world node
+        // @return - a tuple of the world node, the voxel node, the liquid voxel node, and the mesh voxel node
+        // The mesh voxel node ia actually a hiearchy of a mesh node and a smaller procedural box inside it
         std::tuple< dl::bella_sdk::Node, 
                     dl::bella_sdk::Node, 
                     dl::bella_sdk::Node, 
+                    dl::bella_sdk::Node,
                     dl::bella_sdk::Node> defaultSceneVoxel(dl::bella_sdk::Scene& belScene) {
             // Create basic scene elements in Bella for voxel rendering
             auto belWorld     = belScene.world();       // Get scene world root
             auto belVoxel     = belScene.createNode("box","oomVoxel","oomVoxel");
+            auto belEmitterBlockXform     = belScene.createNode("xform","oomEmitterBlockXform","oomEmitterBlockXform");
             auto belLiqVoxel  = belScene.createNode("box","oomLiqVoxel","oomLiqVoxel");
             auto belMeshVoxel = addMeshCube(belScene, "oomMeshVoxel");
             oom::misc::saveHDRI();
@@ -152,7 +154,7 @@ namespace oom {
                 // Create voxel nodes
                 //auto belVoxelForm      = belScene.createNode("xform","oomVoxelXform","oomVoxelXform");
                 //auto belLiqVoxelForm   = belScene.createNode("xform","oomLiqVoxelXform","oomLiqVoxelXform");
-                //auto belVoxelMat       = belScene.createNode("orenNayar","oomVoxelMat","oomVoxelMat");
+                auto belEmitterBlockMat   = belScene.createNode("orenNayar","oomEmitterBlockMat","oomEmitterBlockMat");
                 auto belBevel = belScene.createNode("bevel", "oomBevel", "oomBevel");
                 belBevel["radius"] = 90.0f;
                 belBevel["samples"] =dl::UInt(6); 
@@ -160,6 +162,13 @@ namespace oom {
                 belVoxel["sizeX"]   = 0.99f;
                 belVoxel["sizeY"]   = 0.99f;
                 belVoxel["sizeZ"]   = 0.99f;
+
+                belVoxel.parentTo(belEmitterBlockXform);
+                belEmitterBlockXform["steps"][0]["xform"] = dl::Mat4 {0.999,0,0,0,0,0.999,0,0,0,0,0.999,0,0,0,0,1};
+                belEmitterBlockMat["reflectance"] = dl::Rgba{0.0, 0.0, 0.0, 1.0};
+                belEmitterBlockXform["material"] = belEmitterBlockMat;
+
+
                 // Less gap to make liquid look better, allows more light to pass through
                 belLiqVoxel["sizeX"]    = 0.99945f;
                 belLiqVoxel["sizeY"]    = 0.99945f;
@@ -169,7 +178,7 @@ namespace oom {
                 //belVoxelMat["reflectance"] = dl::Rgba{0.0, 0.0, 0.0, 1.0};
                 //belVoxelForm["material"] = belVoxelMat;
             }
-            return std::make_tuple(belWorld, belMeshVoxel, belLiqVoxel, belVoxel);
+            return std::make_tuple(belWorld, belMeshVoxel, belLiqVoxel, belVoxel, belEmitterBlockXform);
         }
     }
 }
