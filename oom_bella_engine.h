@@ -9,7 +9,7 @@ namespace oom {
         // Function declaration
 
         /*
-        * MyEngineObserver Class override
+        * Generic MyEngineObserver Class override
         * This class receives callbacks from the Bella rendering engine to track rendering progress.
         * It implements the EngineObserver interface and provides methods to:
         * - Handle render start/stop events

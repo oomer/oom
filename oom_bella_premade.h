@@ -3,7 +3,7 @@
 #include <tuple>
 
 // Bella SDK includes - external libraries for 3D rendering
-#include "../bella_engine_sdk/src/bella_sdk/bella_engine.h" // For creating and manipulating 3D scenes in Bella
+//#include "../bella_engine_sdk/src/bella_sdk/bella_engine.h" // For creating and manipulating 3D scenes in Bella
 #include "../oom/oom_bella_long.h" // This file is very large
 #include "../oom/oom_misc.h" // This file is very large
 
