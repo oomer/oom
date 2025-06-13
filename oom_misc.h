@@ -4,6 +4,7 @@
 #include <fstream>    // For std::ofstream
 #include <filesystem>  // For std::filesystem
 #include <cmath>      // For std::pow
+#include <vector>
 
 namespace oom {
     namespace misc {
